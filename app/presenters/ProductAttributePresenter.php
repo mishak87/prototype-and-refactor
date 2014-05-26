@@ -2,22 +2,21 @@
 
 namespace App;
 
-use Nette;
 use App\Entities\ProductAttribute;
 use App\Entities\ProductAttributeValue;
+use App\Models\ProductAttributeViewModel;
+use App\Models\IProductAttributeViewModelFactory;
+use Nette;
 
 
 final class ProductAttributeValuePresenter extends Nette\Application\UI\Presenter
 {
 
-	/** @var \Kdyby\Doctrine\EntityManager @inject */
-	public $entityManager;
+	/** @var IProductAttributeViewModelFactory|null */
+	private $viewFactory;
 
-	/** @var ProductAttribute|null */
-	private $attribute;
-
-	/** @var ProductAttributeValue|null */
-	private $value;
+	/** @var ProductAttributeViewModel|null */
+	private $view;
 
 
 	/**
@@ -26,30 +25,19 @@ final class ProductAttributeValuePresenter extends Nette\Application\UI\Presente
 	 */
 	public function actionDefault($attribute, $value = NULL)
 	{
-		$repo = $this->entityManager->getRepository(ProductAttribute::class);
-		if (!$this->attribute = $repo->findOneBy(['code' => $attribute])) {
-			$this->error('Unknown attribute code.');
-		}
-
-		if ($value !== NULL) {
-			/** @var ProductAttribute $attr */
-			foreach ($this->attribute->getValues() as $val) {
-				if ($val->getCode() === $value) {
-					$this->value = $val;
-					break;
-				}
-			}
-			if ($this->value === NULL) {
-				$this->error('Unknown value code.');
-			}
+		try {
+			$this->view = $this->viewFactory->create($attribute, $value);
+			$this->view->validate();
+		} catch (\RuntimeException $e) {
+			$this->error($e->getMessage());
 		}
 	}
 
 
 	public function renderDefault()
 	{
-		$this->template->attribute = $this->attribute;
-		$this->template->value = $this->value;
+		$this->template->attribute = $this->view->getAttribute();
+		$this->template->value = $this->view->getValue();
 	}
 
 }
