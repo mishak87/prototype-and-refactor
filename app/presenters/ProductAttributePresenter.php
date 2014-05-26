@@ -2,20 +2,18 @@
 
 namespace App;
 
-use App\Entities\ProductAttribute;
-use App\Entities\ProductAttributeValue;
-use App\Models\ProductAttributeViewModel;
-use App\Models\IProductAttributeViewModelFactory;
+use App\Models\IProductAttributeViewModel;
+use App\Models\IViewModelFactory;
 use Nette;
 
 
 final class ProductAttributeValuePresenter extends Nette\Application\UI\Presenter
 {
 
-	/** @var IProductAttributeViewModelFactory|null */
+	/** @var IViewModelFactory|null */
 	private $viewFactory;
 
-	/** @var ProductAttributeViewModel|null */
+	/** @var IProductAttributeViewModel|null */
 	private $view;
 
 
@@ -26,7 +24,7 @@ final class ProductAttributeValuePresenter extends Nette\Application\UI\Presente
 	public function actionDefault($attribute, $value = NULL)
 	{
 		try {
-			$this->view = $this->viewFactory->create($attribute, $value);
+			$this->view = $this->viewFactory->create(IProductAttributeViewModel::class, ['attribute' => $attribute, 'value' => $value]);
 			$this->view->validate();
 		} catch (\RuntimeException $e) {
 			$this->error($e->getMessage());
